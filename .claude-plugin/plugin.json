@@ -1,0 +1,22 @@
+{
+  "name": "ink-panels",
+  "version": "0.1.0",
+  "description": "Stack-based terminal UI framework for Claude Code with two modes: 'explore' for interactive panel apps and 'canvas' for runtime artifact injection. Built on Ink (React for terminals).",
+  "author": {
+    "name": "Herman Geldenhuys"
+  },
+  "repository": "https://github.com/hgeldenhuys/ink-panels",
+  "license": "MIT",
+  "keywords": [
+    "tui",
+    "terminal",
+    "ink",
+    "react",
+    "panels",
+    "claude-code",
+    "artifacts",
+    "dashboard",
+    "explorer",
+    "canvas"
+  ]
+}

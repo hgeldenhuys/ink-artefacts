@@ -1,0 +1,31 @@
+{
+  "name": "ink-panels",
+  "owner": {
+    "name": "Herman Geldenhuys"
+  },
+  "metadata": {
+    "description": "Terminal UI toolkit for Claude Code — explore data with interactive panels, inject runtime artifacts onto a canvas viewer.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "ink-panels",
+      "description": "Stack-based TUI framework with two modes: 'explore' (interactive panel apps) and 'canvas' (runtime artifact injection). Includes skills, library source, and example apps.",
+      "source": "./",
+      "version": "0.1.0",
+      "keywords": [
+        "tui",
+        "terminal",
+        "ink",
+        "react",
+        "panels",
+        "claude-code",
+        "artifacts",
+        "dashboard",
+        "explorer",
+        "canvas"
+      ],
+      "category": "developer-tools"
+    }
+  ]
+}

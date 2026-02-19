@@ -1,0 +1,21 @@
+appName: My Application
+version: 1.0.0
+port: 3000
+debug: false
+logLevel: info
+database:
+  host: localhost
+  port: 5430
+  name: mydb
+  ssl: true
+  maxConnections: 10
+server:
+  cors: true
+  compression: true
+  trustProxy: false
+  rateLimitRpm: 1000
+features:
+  authentication: true
+  caching: false
+  rateLimit: true
+  websockets: false

@@ -1,0 +1,44 @@
+{
+  "name": "ink-panels",
+  "version": "0.1.0",
+  "description": "Stack-based panel navigation for Ink terminal UIs with breadcrumbs and Claude state integration",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "explore:files": "node --import tsx examples/file-browser/index.tsx",
+    "explore:scrum": "node --import tsx examples/scrum-board/index.tsx",
+    "explore:db": "node --import tsx examples/db-browser/index.tsx",
+    "explore:yaml": "node --import tsx examples/yaml-editor/index.tsx",
+    "canvas": "node --import tsx examples/artifact-viewer/index.tsx",
+    "canvas:inject": "node --import tsx examples/artifact-viewer/inject-demo.ts"
+  },
+  "dependencies": {
+    "@inkjs/ui": "^2.0.0",
+    "chalk": "^5.4.1",
+    "fullscreen-ink": "^0.1.0",
+    "ink": "^6.7.0",
+    "ink-scroll-view": "^0.3.6",
+    "js-yaml": "^4.1.1",
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^25.2.3",
+    "@types/react": "^19.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  },
+  "peerDependencies": {
+    "ink": ">=6.0.0",
+    "react": ">=19.0.0"
+  }
+}

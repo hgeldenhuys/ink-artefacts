@@ -14,13 +14,13 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "explore:files": "node --import tsx examples/file-browser/index.tsx",
-    "explore:scrum": "node --import tsx examples/scrum-board/index.tsx",
-    "explore:db": "node --import tsx examples/db-browser/index.tsx",
-    "explore:yaml": "node --import tsx examples/yaml-editor/index.tsx",
-    "explore:clock": "node --import tsx examples/clock/index.tsx",
-    "canvas": "node --import tsx examples/artifact-viewer/index.tsx",
-    "canvas:inject": "node --import tsx examples/artifact-viewer/inject-demo.ts"
+    "explore:files": "NODE_ENV=production node --import tsx examples/file-browser/index.tsx",
+    "explore:scrum": "NODE_ENV=production node --import tsx examples/scrum-board/index.tsx",
+    "explore:db": "NODE_ENV=production node --import tsx examples/db-browser/index.tsx",
+    "explore:yaml": "NODE_ENV=production node --import tsx examples/yaml-editor/index.tsx",
+    "explore:clock": "NODE_ENV=production node --import tsx examples/clock/index.tsx",
+    "canvas": "NODE_ENV=production node --import tsx examples/artifact-viewer/index.tsx",
+    "canvas:inject": "NODE_ENV=production node --import tsx examples/artifact-viewer/inject-demo.ts"
   },
   "dependencies": {
     "@inkjs/ui": "^2.0.0",

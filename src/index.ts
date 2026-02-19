@@ -12,6 +12,9 @@ export { usePanelNavigation } from './hooks/usePanelNavigation.js';
 export { useStateFile } from './hooks/useStateFile.js';
 export { useInputLock, InputLockContext } from './hooks/useInputLock.js';
 
+// Utilities
+export { parseExecArg, runExec } from './utils/exec.js';
+
 // Types
 export type {
   PanelConfig,

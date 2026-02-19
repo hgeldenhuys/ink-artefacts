@@ -1,11 +1,14 @@
 import React from 'react';
 import { render } from 'ink';
 import { PanelStack } from '../../src/components/PanelStack.js';
+import { parseExecArg, runExec } from '../../src/index.js';
 import { EditorPanel } from './EditorPanel.js';
 import type { EditorPanelData } from './EditorPanel.js';
 import * as yaml from 'js-yaml';
 import { readFileSync, writeFileSync } from 'fs';
 import { resolve, basename } from 'path';
+
+const execCmd = parseExecArg();
 
 // Accept optional CLI args: yaml-editor [config.yaml] [schema.json]
 const yamlPath = process.argv[2]
@@ -37,6 +40,7 @@ const rootPanel = {
         forceQuotes: false,
       });
       writeFileSync(yamlPath, output, 'utf-8');
+      if (execCmd) runExec(execCmd);
     },
   } satisfies EditorPanelData,
   state: { type: 'yaml-editor', file: yamlPath },

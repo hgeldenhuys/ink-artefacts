@@ -1,96 +1,65 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, Text, useInput } from 'ink';
-import { exec } from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
 import { useInputLock } from '../../src/hooks/useInputLock.js';
-import type { PanelProps } from '../../src/types.js';
+import { runExec } from '../../src/utils/exec.js';
+import type { PanelProps, PanelConfig } from '../../src/types.js';
+
+// ─── Timer Persistence ───────────────────────────────────
+
+const PERSIST_PATH = path.join(os.homedir(), '.claude', 'clock-state.json');
+
+interface PersistedTimer {
+  remaining: number;
+  totalSet: number;
+  savedAt: number; // epoch ms
+  execCmd?: string;
+  timerName?: string;
+}
+
+function saveTimer(state: PersistedTimer): void {
+  try {
+    const dir = path.dirname(PERSIST_PATH);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(PERSIST_PATH, JSON.stringify(state));
+  } catch { /* ignore write errors */ }
+}
+
+function loadTimer(): PersistedTimer | null {
+  try {
+    if (!fs.existsSync(PERSIST_PATH)) return null;
+    const raw = fs.readFileSync(PERSIST_PATH, 'utf-8');
+    const state = JSON.parse(raw) as PersistedTimer;
+    // Subtract elapsed time since save
+    const elapsed = Math.floor((Date.now() - state.savedAt) / 1000);
+    const adjusted = Math.max(0, state.remaining - elapsed);
+    return { ...state, remaining: adjusted };
+  } catch {
+    return null;
+  }
+}
+
+function clearPersistedTimer(): void {
+  try { fs.unlinkSync(PERSIST_PATH); } catch { /* ignore */ }
+}
 
 // ─── Big ASCII Digits (5 lines tall, 5 chars wide) ───────
 
 const DIGITS: Record<string, string[]> = {
-  '0': [
-    ' ███ ',
-    '█   █',
-    '█   █',
-    '█   █',
-    ' ███ ',
-  ],
-  '1': [
-    '  █  ',
-    ' ██  ',
-    '  █  ',
-    '  █  ',
-    ' ███ ',
-  ],
-  '2': [
-    ' ███ ',
-    '█   █',
-    '  ██ ',
-    ' █   ',
-    '█████',
-  ],
-  '3': [
-    '█████',
-    '   █ ',
-    ' ███ ',
-    '    █',
-    '████ ',
-  ],
-  '4': [
-    '█   █',
-    '█   █',
-    '█████',
-    '    █',
-    '    █',
-  ],
-  '5': [
-    '█████',
-    '█    ',
-    '████ ',
-    '    █',
-    '████ ',
-  ],
-  '6': [
-    ' ███ ',
-    '█    ',
-    '████ ',
-    '█   █',
-    ' ███ ',
-  ],
-  '7': [
-    '█████',
-    '    █',
-    '   █ ',
-    '  █  ',
-    '  █  ',
-  ],
-  '8': [
-    ' ███ ',
-    '█   █',
-    ' ███ ',
-    '█   █',
-    ' ███ ',
-  ],
-  '9': [
-    ' ███ ',
-    '█   █',
-    ' ████',
-    '    █',
-    ' ███ ',
-  ],
-  ':': [
-    '     ',
-    '  █  ',
-    '     ',
-    '  █  ',
-    '     ',
-  ],
-  ' ': [
-    '     ',
-    '     ',
-    '     ',
-    '     ',
-    '     ',
-  ],
+  '0': [' ███ ', '█   █', '█   █', '█   █', ' ███ '],
+  '1': ['  █  ', ' ██  ', '  █  ', '  █  ', ' ███ '],
+  '2': [' ███ ', '█   █', '  ██ ', ' █   ', '█████'],
+  '3': ['█████', '   █ ', ' ███ ', '    █', '████ '],
+  '4': ['█   █', '█   █', '█████', '    █', '    █'],
+  '5': ['█████', '█    ', '████ ', '    █', '████ '],
+  '6': [' ███ ', '█    ', '████ ', '█   █', ' ███ '],
+  '7': ['█████', '    █', '   █ ', '  █  ', '  █  '],
+  '8': [' ███ ', '█   █', ' ███ ', '█   █', ' ███ '],
+  '9': [' ███ ', '█   █', ' ████', '    █', ' ███ '],
+  ':': ['     ', '  █  ', '     ', '  █  ', '     '],
+  ' ': ['     ', '     ', '     ', '     ', '     '],
 };
 
 function renderBigText(text: string): string[] {
@@ -109,6 +78,15 @@ function pad2(n: number): string {
   return n < 10 ? '0' + n : String(n);
 }
 
+// ─── Presets ──────────────────────────────────────────────
+
+const PRESETS = [
+  { key: '1', label: '5 min', h: 0, m: 5, s: 0 },
+  { key: '2', label: '15 min', h: 0, m: 15, s: 0 },
+  { key: '3', label: '25 min', h: 0, m: 25, s: 0 },
+  { key: '4', label: '1 hour', h: 1, m: 0, s: 0 },
+];
+
 // ─── Types ────────────────────────────────────────────────
 
 type Mode = 'clock' | 'timer-set' | 'timer-run' | 'timer-paused' | 'timer-done';
@@ -116,13 +94,26 @@ type TimerField = 'h' | 'm' | 's';
 
 export interface ClockData {
   title?: string;
-  onTimerEnd?: string; // bash command to run when timer hits zero
+  onTimerEnd?: string;   // bash command to run when timer hits zero
+  timerName?: string;    // optional name for this timer (when pushed as a new panel)
+}
+
+// ─── Factory for pushing a new timer ──────────────────────
+
+export function makeTimerPanel(name: string, execCmd?: string): PanelConfig<ClockData> {
+  return {
+    id: `timer-${Date.now()}`,
+    title: name,
+    component: ClockPanel as any,
+    data: { title: name, onTimerEnd: execCmd, timerName: name },
+    state: { type: 'timer', name },
+  };
 }
 
 // ─── Component ────────────────────────────────────────────
 
 export function ClockPanel(props: PanelProps<ClockData>) {
-  const { width, height, updateState } = props;
+  const { width, height, updateState, push } = props;
   const inputLock = useInputLock();
 
   const [mode, setMode] = useState<Mode>('clock');
@@ -133,14 +124,54 @@ export function ClockPanel(props: PanelProps<ClockData>) {
   const [timerM, setTimerM] = useState(0);
   const [timerS, setTimerS] = useState(0);
   const [selectedField, setSelectedField] = useState<TimerField>('m');
-  const [remaining, setRemaining] = useState(0); // seconds remaining
-  const [totalSet, setTotalSet] = useState(0);    // total seconds that were set
+  const [remaining, setRemaining] = useState(0);
+  const [totalSet, setTotalSet] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Flash state
   const [flashCount, setFlashCount] = useState(0);
   const [flashOn, setFlashOn] = useState(false);
-  const flashRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const flashRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Timer name counter for pushed timers
+  const timerCountRef = useRef(0);
+
+  // Resume persisted timer on mount (only for root clock, not pushed timers)
+  const resumedRef = useRef(false);
+  useEffect(() => {
+    if (resumedRef.current || props.data.timerName) return;
+    resumedRef.current = true;
+    const saved = loadTimer();
+    if (saved && saved.remaining > 0) {
+      setRemaining(saved.remaining);
+      setTotalSet(saved.totalSet);
+      setMode('timer-paused'); // resume as paused so user can review
+    } else if (saved && saved.remaining === 0 && saved.totalSet > 0) {
+      // Timer expired while we were away
+      clearPersistedTimer();
+      setMode('timer-done');
+      setTotalSet(saved.totalSet);
+      runExec(props.data.onTimerEnd);
+      setFlashCount(0);
+      setFlashOn(true);
+    }
+  }, []);
+
+  // Persist timer state every 5 seconds while running
+  useEffect(() => {
+    if (mode === 'timer-run' && remaining > 0) {
+      saveTimer({
+        remaining,
+        totalSet,
+        savedAt: Date.now(),
+        execCmd: props.data.onTimerEnd,
+        timerName: props.data.timerName,
+      });
+    }
+    if (mode === 'clock' || mode === 'timer-set') {
+      clearPersistedTimer();
+    }
+  }, [mode, remaining]);
 
   // Clock tick
   useEffect(() => {
@@ -153,9 +184,7 @@ export function ClockPanel(props: PanelProps<ClockData>) {
     if (mode === 'timer-run' && remaining > 0) {
       intervalRef.current = setInterval(() => {
         setRemaining(prev => {
-          if (prev <= 1) {
-            return 0;
-          }
+          if (prev <= 1) return 0;
           return prev - 1;
         });
       }, 1000);
@@ -170,10 +199,9 @@ export function ClockPanel(props: PanelProps<ClockData>) {
     if (mode === 'timer-run' && remaining === 0 && totalSet > 0) {
       if (intervalRef.current) clearInterval(intervalRef.current);
       setMode('timer-done');
-      // Run exec command if provided
-      if (props.data.onTimerEnd) {
-        exec(props.data.onTimerEnd);
-      }
+      clearPersistedTimer();
+      // Run exec command, or default terminal bell
+      runExec(props.data.onTimerEnd);
       // Start flashing
       setFlashCount(0);
       setFlashOn(true);
@@ -197,6 +225,7 @@ export function ClockPanel(props: PanelProps<ClockData>) {
   useEffect(() => {
     updateState({
       mode,
+      timerName: props.data.timerName,
       ...(mode === 'clock'
         ? { time: now.toLocaleTimeString() }
         : { remaining, totalSet }),
@@ -213,6 +242,20 @@ export function ClockPanel(props: PanelProps<ClockData>) {
     return () => { inputLock.unlock(); };
   }, [mode]);
 
+  // ─── Helper: start timer with given values ─────────────
+
+  function startTimer(h: number, m: number, s: number) {
+    const total = h * 3600 + m * 60 + s;
+    if (total > 0) {
+      setTimerH(h);
+      setTimerM(m);
+      setTimerS(s);
+      setRemaining(total);
+      setTotalSet(total);
+      setMode('timer-run');
+    }
+  }
+
   // ─── Input Handling ───────────────────────────────────
 
   useInput((input, key) => {
@@ -223,13 +266,28 @@ export function ClockPanel(props: PanelProps<ClockData>) {
         setTimerM(5);
         setTimerS(0);
         setSelectedField('m');
+        return;
+      }
+      // Push a new independent timer
+      if (input === 'n') {
+        timerCountRef.current += 1;
+        push(makeTimerPanel(`Timer ${timerCountRef.current}`, props.data.onTimerEnd));
+        return;
       }
       return;
     }
 
     if (mode === 'timer-set') {
+      // Presets: 1-4
+      for (let i = 0; i < PRESETS.length; i++) {
+        if (input === PRESETS[i].key) {
+          startTimer(PRESETS[i].h, PRESETS[i].m, PRESETS[i].s);
+          return;
+        }
+      }
+
       // Field selection
-      if (key.leftArrow || input === 'h') {
+      if (key.leftArrow) {
         setSelectedField(prev => prev === 's' ? 'm' : prev === 'm' ? 'h' : 'h');
         return;
       }
@@ -249,12 +307,7 @@ export function ClockPanel(props: PanelProps<ClockData>) {
 
       // Start
       if (key.return || input === ' ') {
-        const total = timerH * 3600 + timerM * 60 + timerS;
-        if (total > 0) {
-          setRemaining(total);
-          setTotalSet(total);
-          setMode('timer-run');
-        }
+        startTimer(timerH, timerM, timerS);
         return;
       }
 
@@ -335,16 +388,19 @@ export function ClockPanel(props: PanelProps<ClockData>) {
     });
   } else if (mode === 'timer-set') {
     displayTime = `${pad2(timerH)}:${pad2(timerM)}:${pad2(timerS)}`;
-    label = props.data.onTimerEnd ? `Set Timer  ⚡ ${props.data.onTimerEnd}` : 'Set Timer';
+    label = props.data.onTimerEnd
+      ? `Set Timer  ⚡ ${props.data.onTimerEnd}`
+      : 'Set Timer';
   } else {
-    // timer-run, timer-paused, timer-done
     const rh = Math.floor(remaining / 3600);
     const rm = Math.floor((remaining % 3600) / 60);
     const rs = remaining % 60;
     displayTime = `${pad2(rh)}:${pad2(rm)}:${pad2(rs)}`;
-    label = mode === 'timer-run' ? 'Timer Running'
-          : mode === 'timer-paused' ? 'Timer Paused'
-          : 'Time\'s Up!';
+    label = mode === 'timer-run'
+      ? (props.data.timerName ? `${props.data.timerName} — Running` : 'Timer Running')
+      : mode === 'timer-paused'
+      ? (props.data.timerName ? `${props.data.timerName} — Paused` : 'Timer Paused')
+      : 'Time\'s Up!';
   }
 
   const bigLines = renderBigText(displayTime);
@@ -354,8 +410,6 @@ export function ClockPanel(props: PanelProps<ClockData>) {
     : mode === 'timer-run' ? 'green'
     : mode === 'timer-set' ? 'cyan'
     : 'white';
-
-  // Field labels for timer-set mode
 
   // Progress bar for running timer
   let progressBar = '';
@@ -368,9 +422,9 @@ export function ClockPanel(props: PanelProps<ClockData>) {
   // Status bar
   let statusText: string;
   if (mode === 'clock') {
-    statusText = 't:timer  q:quit';
+    statusText = 't:timer  n:new timer  q:quit';
   } else if (mode === 'timer-set') {
-    statusText = '←/→:field  ↑/↓:adjust  Enter:start  Esc:back';
+    statusText = '1-4:preset  ←/→:field  ↑/↓:adjust  Enter:start  Esc:back';
   } else if (mode === 'timer-run') {
     statusText = 'Space:pause  r:reset  c:clock';
   } else if (mode === 'timer-paused') {
@@ -410,18 +464,27 @@ export function ClockPanel(props: PanelProps<ClockData>) {
         ))}
       </Box>
 
-      {/* Field selector for timer-set */}
+      {/* Field selector + presets for timer-set */}
       {mode === 'timer-set' && (
-        <Box justifyContent="center" marginTop={1} gap={4}>
-          <Text color={selectedField === 'h' ? 'cyan' : 'gray'} bold={selectedField === 'h'}>
-            {selectedField === 'h' ? '[ Hours ]' : '  Hours  '}
-          </Text>
-          <Text color={selectedField === 'm' ? 'cyan' : 'gray'} bold={selectedField === 'm'}>
-            {selectedField === 'm' ? '[ Minutes ]' : '  Minutes  '}
-          </Text>
-          <Text color={selectedField === 's' ? 'cyan' : 'gray'} bold={selectedField === 's'}>
-            {selectedField === 's' ? '[ Seconds ]' : '  Seconds  '}
-          </Text>
+        <Box flexDirection="column" alignItems="center" marginTop={1} gap={1}>
+          <Box gap={4}>
+            <Text color={selectedField === 'h' ? 'cyan' : 'gray'} bold={selectedField === 'h'}>
+              {selectedField === 'h' ? '[ Hours ]' : '  Hours  '}
+            </Text>
+            <Text color={selectedField === 'm' ? 'cyan' : 'gray'} bold={selectedField === 'm'}>
+              {selectedField === 'm' ? '[ Minutes ]' : '  Minutes  '}
+            </Text>
+            <Text color={selectedField === 's' ? 'cyan' : 'gray'} bold={selectedField === 's'}>
+              {selectedField === 's' ? '[ Seconds ]' : '  Seconds  '}
+            </Text>
+          </Box>
+          <Box gap={2}>
+            {PRESETS.map(p => (
+              <Text key={p.key} dimColor>
+                {p.key}:{p.label}
+              </Text>
+            ))}
+          </Box>
         </Box>
       )}
 

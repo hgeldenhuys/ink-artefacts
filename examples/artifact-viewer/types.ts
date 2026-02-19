@@ -8,7 +8,7 @@ export interface ArtifactDescriptor {
   /** Display title shown in the tab bar */
   title: string;
   /** Artifact type -- determines which renderer to use */
-  type: 'json-tree' | 'disk-usage' | 'file-list' | 'key-value' | 'log' | 'markdown' | 'table';
+  type: 'json-tree' | 'disk-usage' | 'file-list' | 'diff-list' | 'key-value' | 'log' | 'markdown' | 'table';
   /** The data payload for the renderer */
   data: unknown;
   /** Optional timestamp */

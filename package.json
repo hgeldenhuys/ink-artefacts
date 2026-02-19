@@ -20,7 +20,11 @@
     "explore:yaml": "NODE_ENV=production node --import tsx examples/yaml-editor/index.tsx",
     "explore:clock": "NODE_ENV=production node --import tsx examples/clock/index.tsx",
     "canvas": "NODE_ENV=production node --import tsx examples/artifact-viewer/index.tsx",
-    "canvas:inject": "NODE_ENV=production node --import tsx examples/artifact-viewer/inject-demo.ts"
+    "canvas:inject": "NODE_ENV=production node --import tsx examples/artifact-viewer/inject-demo.ts",
+    "explore:swarm": "NODE_ENV=production node --import tsx examples/swarm-explorer/index.tsx",
+    "explore:sysmon": "NODE_ENV=production node --import tsx examples/system-monitor/index.tsx",
+    "dashboard:install": "bun hooks/install-hooks.ts",
+    "dashboard": "bun hooks/install-hooks.ts && NODE_ENV=production node --import tsx examples/artifact-viewer/index.tsx"
   },
   "dependencies": {
     "@inkjs/ui": "^2.0.0",

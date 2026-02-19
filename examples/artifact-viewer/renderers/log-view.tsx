@@ -54,11 +54,24 @@ export function LogViewPanel(props: PanelProps<LogViewData>) {
         </>
       )}
 
-      {windowLines.map((line, i) => (
-        <Box key={scrollOffset + i}>
-          <Text color={color as any}>{line}</Text>
-        </Box>
-      ))}
+      {windowLines.map((line, i) => {
+        // Support ~text~ for strikethrough+dim styling
+        const strikeMatch = line.match(/^(.*?)~(.+)~(.*)$/);
+        if (strikeMatch) {
+          return (
+            <Box key={scrollOffset + i}>
+              <Text color={color as any}>{strikeMatch[1]}</Text>
+              <Text strikethrough dimColor>{strikeMatch[2]}</Text>
+              <Text color={color as any}>{strikeMatch[3]}</Text>
+            </Box>
+          );
+        }
+        return (
+          <Box key={scrollOffset + i}>
+            <Text color={color as any}>{line}</Text>
+          </Box>
+        );
+      })}
 
       <Box flexGrow={1} />
 

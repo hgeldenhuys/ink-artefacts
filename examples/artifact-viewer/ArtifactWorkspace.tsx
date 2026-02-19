@@ -10,6 +10,7 @@ import { JsonTreePanel } from './renderers/json-tree.js';
 import { DiskUsagePanel } from './renderers/disk-usage.js';
 import { TableViewPanel } from './renderers/table-view.js';
 import { LogViewPanel } from './renderers/log-view.js';
+import { DiffViewPanel } from './renderers/diff-view.js';
 import { ListPanel, DetailPanel } from '../../src/index.js';
 import type { PanelConfig } from '../../src/index.js';
 import type { ArtifactDescriptor, ArtifactEntry } from './types.js';
@@ -82,6 +83,47 @@ function artifactToPanel(descriptor: ArtifactDescriptor): PanelConfig {
         state: { artifactType: 'file-list', artifactId: descriptor.id },
       };
 
+    case 'diff-list': {
+      const fileEntries = descriptor.data as Array<{
+        shortName: string;
+        path: string;
+        action: string;
+        timestamp: string;
+        diffs: Array<{ old: string; new: string; timestamp: string }>;
+      }>;
+      return {
+        id: descriptor.id,
+        title: descriptor.title,
+        component: ListPanel as any,
+        data: {
+          title: descriptor.title,
+          items: fileEntries.map((entry, i) => ({
+            id: String(i),
+            label: entry.shortName,
+            description: entry.timestamp,
+            badge: entry.action,
+            badgeColor: entry.action === 'W' ? 'cyan' : 'yellow',
+          })),
+          onSelect: (item: any, index: number, panelProps: any) => {
+            const entry = fileEntries[index];
+            if (!entry) return;
+            panelProps.push({
+              id: `diff-${index}`,
+              title: entry.shortName,
+              component: DiffViewPanel as any,
+              data: {
+                title: entry.shortName,
+                filePath: entry.path,
+                diffs: entry.diffs,
+              },
+              state: { artifactType: 'diff-view', fileIndex: index },
+            });
+          },
+        },
+        state: { artifactType: 'diff-list', artifactId: descriptor.id },
+      };
+    }
+
     case 'log':
     default: {
       const rawData = descriptor.data;
@@ -130,6 +172,18 @@ function ArtifactPanel({
 }) {
   const rootPanel = artifactToPanel(descriptor);
   const { stack, activePanel, breadcrumbs, push, pop, replace, updateState } = usePanelNavigation(rootPanel);
+
+  // Detect descriptor data changes and update the root panel.
+  // usePanelNavigation's useState only captures initialPanel on mount,
+  // so we need to replace the panel when the artifact file is rewritten.
+  const prevDataRef = useRef(JSON.stringify(descriptor.data));
+  useEffect(() => {
+    const currentData = JSON.stringify(descriptor.data);
+    if (prevDataRef.current !== currentData) {
+      prevDataRef.current = currentData;
+      replace(artifactToPanel(descriptor));
+    }
+  }, [descriptor]);
 
   const resolvedPath = join(homedir(), '.claude', 'tui-state.json');
   useStateFile(appName, stack, resolvedPath, isActive, 300);

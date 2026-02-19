@@ -93,6 +93,12 @@ node --import tsx examples/yaml-editor/index.tsx
 
 # Edit any YAML file against a schema
 node --import tsx examples/yaml-editor/index.tsx path/to/config.yaml path/to/schema.json
+
+# SWARM project explorer (recursive-ai integration)
+node --import tsx examples/swarm-explorer/index.tsx [path-to-.swarm-dir]
+
+# Real-time system monitor
+node --import tsx examples/system-monitor/index.tsx
 ```
 
 Or use the npm scripts:
@@ -103,6 +109,8 @@ bun run explore:scrum
 bun run explore:db
 bun run explore:yaml
 bun run explore:clock
+bun run explore:swarm
+bun run explore:sysmon
 ```
 
 ### Canvas Mode
@@ -136,8 +144,58 @@ Schema-driven config editor. Reads a YAML file and JSON schema, renders fields a
 ### Clock & Timer
 Big ASCII-art digital clock with a built-in countdown timer. Press `t` to set a timer with hours/minutes/seconds, `Space` to start/pause. When the timer reaches zero the screen flashes red three times. Demonstrates real-time `setInterval` rendering and `useInputLock` for modal field editing.
 
+### SWARM Explorer
+Interactive browser for [recursive-ai](https://github.com/hgeldenhuys/recursive-ai) SWARM projects. Dashboard with story status bars, task/AC metrics, and knowledge dimension counts. Drill into stories to see acceptance criteria (with evidence), tasks (with agent assignments and dependency chains), knowledge items (filtered by E/Q/P dimension), and retrospectives with full metrics. Pass a `.swarm/` directory path as argument, or use the bundled sample data.
+
+### System Monitor
+Real-time system dashboard showing CPU usage with sparkline history, memory with progress bars, disk usage, and top processes sorted by CPU. Auto-refreshes every 1.5 seconds. Uses Unicode block characters for bars and braille-style sparklines. Color-coded thresholds: green (<40%), cyan (<70%), yellow (<90%), red (>90%).
+
 ### Artifact Viewer (Canvas)
-Watches `~/.claude/artifacts/` for JSON descriptor files. Supports json-tree, disk-usage, table, key-value, file-list, and log renderers. Each artifact gets its own tab with independent navigation.
+Watches `~/.claude/artifacts/` for JSON descriptor files. Supports json-tree, disk-usage, table, key-value, file-list, diff-list, and log renderers. Each artifact gets its own tab with independent navigation.
+
+### Live Dashboard (Hooks)
+A Claude Code hooks integration that provides a real-time dashboard while Claude works. Uses `PostToolUse` and `Stop` hooks to write session-scoped artifacts that the canvas viewer picks up automatically.
+
+**Panels:**
+- **Tasks** — Live task progress extracted from the transcript. Shows in-progress, pending, and completed tasks with strikethrough styling.
+- **Files** — Recently edited files with drill-down diff view. Select a file and press Enter to see each edit's removed (red) and added (green) lines.
+
+Install and launch:
+
+```bash
+# Install hooks into your project
+bun run dashboard:install
+
+# Launch the dashboard in a TMUX pane
+tmux split-window -h -p 50 -c /path/to/ink-panels "NODE_ENV=production node --import tsx examples/artifact-viewer/index.tsx"
+```
+
+Or configure hooks manually in your project's `.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [{ "type": "command", "command": "bun \"$CLAUDE_PROJECT_DIR\"/ink-panels/hooks/dashboard-hook.ts" }]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [{ "type": "command", "command": "bun \"$CLAUDE_PROJECT_DIR\"/ink-panels/hooks/dashboard-hook.ts" }]
+      }
+    ]
+  }
+}
+```
+
+**How it works:**
+- `PostToolUse` fires after every tool call (Read, Write, Edit, Bash, etc.), updating files and re-parsing the transcript for task state.
+- `Stop` fires when Claude finishes responding, catching TaskCreate/TaskUpdate which don't trigger PostToolUse.
+- Artifacts are session-scoped (`session-{id}-01-tasks.json`) so they don't interfere with other artifacts.
+- The canvas viewer detects file changes via `fs.watch()` and live-updates the panels.
 
 ## Architecture
 
@@ -162,7 +220,18 @@ ink-panels/
 │   ├── db-browser/               # Database browser
 │   ├── yaml-editor/              # Schema-driven YAML editor
 │   ├── clock/                    # Digital clock & countdown timer
+│   ├── swarm-explorer/           # recursive-ai SWARM project browser
+│   ├── system-monitor/           # Real-time CPU/mem/disk/process dashboard
 │   └── artifact-viewer/          # Canvas mode viewer
+│       └── renderers/
+│           ├── json-tree.tsx      # JSON tree viewer
+│           ├── disk-usage.tsx     # Disk usage bars
+│           ├── table-view.tsx     # Table renderer
+│           ├── log-view.tsx       # Scrollable log
+│           └── diff-view.tsx      # Inline diff viewer (red/green)
+├── hooks/                        # Claude Code hooks
+│   ├── dashboard-hook.ts         # PostToolUse/Stop hook for live dashboard
+│   └── install-hooks.ts          # Installs hooks into project settings
 ├── skills/                       # Claude Code skills
 │   ├── building-tui-panels/      # "explore" skill
 │   └── injecting-tui-artifacts/  # "canvas" skill

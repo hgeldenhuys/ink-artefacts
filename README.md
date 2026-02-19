@@ -36,8 +36,8 @@ Built on [Ink](https://github.com/vadimdemedes/ink) (React for terminals) with R
 ### As a Claude Code Plugin (Recommended)
 
 ```bash
-/plugin marketplace add hgeldenhuys/ink-panels
-/plugin install ink-panels@ink-panels
+/plugin marketplace add hgeldenhuys/ink-artefacts
+/plugin install ink-panels@ink-artefacts
 ```
 
 This gives Claude access to both skills:
@@ -47,8 +47,8 @@ This gives Claude access to both skills:
 ### Manual Setup
 
 ```bash
-git clone https://github.com/hgeldenhuys/ink-panels.git
-cd ink-panels
+git clone https://github.com/hgeldenhuys/ink-artefacts.git
+cd ink-artefacts
 bun install
 ```
 

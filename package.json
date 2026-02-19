@@ -18,6 +18,7 @@
     "explore:scrum": "node --import tsx examples/scrum-board/index.tsx",
     "explore:db": "node --import tsx examples/db-browser/index.tsx",
     "explore:yaml": "node --import tsx examples/yaml-editor/index.tsx",
+    "explore:clock": "node --import tsx examples/clock/index.tsx",
     "canvas": "node --import tsx examples/artifact-viewer/index.tsx",
     "canvas:inject": "node --import tsx examples/artifact-viewer/inject-demo.ts"
   },

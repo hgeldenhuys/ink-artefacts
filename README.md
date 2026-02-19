@@ -102,6 +102,7 @@ bun run explore:files
 bun run explore:scrum
 bun run explore:db
 bun run explore:yaml
+bun run explore:clock
 ```
 
 ### Canvas Mode
@@ -132,6 +133,9 @@ Mock database explorer with table schemas, data grids with `/` search, row detai
 ### YAML Editor
 Schema-driven config editor. Reads a YAML file and JSON schema, renders fields as an interactive form. Booleans toggle, enums cycle, strings/numbers edit inline. Demonstrates custom panels with `useInputLock` for modal input.
 
+### Clock & Timer
+Big ASCII-art digital clock with a built-in countdown timer. Press `t` to set a timer with hours/minutes/seconds, `Space` to start/pause. When the timer reaches zero the screen flashes red three times. Demonstrates real-time `setInterval` rendering and `useInputLock` for modal field editing.
+
 ### Artifact Viewer (Canvas)
 Watches `~/.claude/artifacts/` for JSON descriptor files. Supports json-tree, disk-usage, table, key-value, file-list, and log renderers. Each artifact gets its own tab with independent navigation.
 
@@ -157,6 +161,7 @@ ink-panels/
 │   ├── scrum-board/              # Multi-level project board
 │   ├── db-browser/               # Database browser
 │   ├── yaml-editor/              # Schema-driven YAML editor
+│   ├── clock/                    # Digital clock & countdown timer
 │   └── artifact-viewer/          # Canvas mode viewer
 ├── skills/                       # Claude Code skills
 │   ├── building-tui-panels/      # "explore" skill

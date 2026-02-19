@@ -11,3 +11,5 @@ dist/
 
 # Agent memory (project-specific, not shared)
 .claude/agent-memory/
+# Local settings (personal hooks, not shared)
+.claude/settings.local.json

@@ -1,0 +1,1 @@
+Clear all artifacts from the canvas viewer by removing JSON files from ~/.claude/artifacts/. Run: `rm -f ~/.claude/artifacts/*.json` and confirm what was removed. The canvas viewer will auto-update to show the empty state.

@@ -377,6 +377,12 @@ export function ArtifactWorkspace({ artifactsDir, appName = 'artifact-viewer', o
           );
         })}
         <Box flexGrow={1} />
+        {artifacts[activeTab]?.createdAt && (
+          <Text dimColor>
+            {new Date(artifacts[activeTab].createdAt!).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            {' '}
+          </Text>
+        )}
         <Text dimColor>{activeTab + 1}/{artifacts.length}</Text>
       </Box>
 

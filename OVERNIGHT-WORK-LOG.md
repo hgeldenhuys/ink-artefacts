@@ -92,9 +92,59 @@ Dashboard (status bars, metrics, knowledge counts)
 - **Files diff panel:** Built `diff-list` artifact type with DiffViewPanel renderer showing Edit operations as red/green inline diffs
 - **Dashboard hook updates:** Capture `old_string`/`new_string` from Edit tool, store diffs in state, write `diff-list` artifacts
 
+### 4. Continuation Session — Ink Ecosystem Demos
+
+#### Retrospective Fixes Applied
+- Wired `writeContextArtifact()` into `main()` (was defined but never called)
+- Capped diff storage: 10 per file, 100 total across all files
+- Added hook error logging to `~/.claude/dashboard-hook-errors.log`
+- Added "last updated" timestamp to canvas viewer tab bar
+
+#### Ink Library Compatibility Testing
+Installed and tested all the ink ecosystem libraries from the user's list:
+- **Compatible (Ink 6 + React 19):** `ink-big-text`, `ink-gradient`, `ink-spinner`, `ink-syntax-highlight`, `marked` + `marked-terminal`
+- **Incompatible (CJS/yoga-layout issues):** `ink-table`, `ink-task-list` (CJS `require('ink')` triggers top-level await error in yoga-layout)
+- **Incompatible (React 19):** `ink-divider` (bundles its own old ink with react-reconciler expecting React 18 internals)
+- Removed incompatible packages, kept only working ones
+
+#### 4a. Doc Reader (`examples/doc-reader/`)
+**What:** Browse and read documentation with rich rendering.
+- Markdown files rendered with `marked` + `marked-terminal` (headers, bold, code blocks, lists)
+- Source files get `ink-syntax-highlight` with language auto-detection
+- Scrollable with vim keys, file browser filtered to docs + source files
+
+**Files:** `index.tsx`, `MarkdownPanel.tsx`, `CodePanel.tsx`
+**Run:** `bun run explore:docs` or `node --import tsx examples/doc-reader/index.tsx [dir]`
+
+#### 4b. Git Dashboard (`examples/git-dashboard/`)
+**What:** Interactive git repository overview.
+- Giant gradient repo name header (`ink-big-text` + `ink-gradient`)
+- Loading spinner (`ink-spinner`) while collecting data
+- Tabbed sections: Commits, Branches, Changes, Stats
+- Drill into commit details, branch lists, contributor bar charts
+- All data from real `git` commands via `execSync`
+
+**Files:** `index.tsx`, `GitDashboard.tsx`, `git-data.ts`
+**Run:** `bun run explore:git` or `node --import tsx examples/git-dashboard/index.tsx [repo-path]`
+
+#### 4c. Project Dashboard (`examples/project-dashboard/`)
+**What:** Beautiful Node.js project overview.
+- Gradient project name header, loading spinner
+- Health checks: README, tests, CI, TypeScript, linter, CLAUDE.md
+- File type distribution with Unicode bar charts
+- Dependency browser (prod/dev split), script viewer with syntax highlighting
+- Directory size breakdown, TODO/FIXME counter
+- Recursive directory scanning (skips node_modules, .git, dist, etc.)
+
+**Files:** `index.tsx`, `ProjectDashboard.tsx`, `project-data.ts`
+**Run:** `bun run explore:project` or `node --import tsx examples/project-dashboard/index.tsx [path]`
+
 ## What's Next (suggestions for future sessions)
 - Connect SWARM Explorer to live `fs.watch()` so panels update when stories are modified
 - Add task status editing from within the TUI (write-back to YAML frontmatter)
 - Run `recursive init` on the ink-panels project to create a real `.swarm/` directory
 - Add `recursive validate` and `recursive transition` commands as panel actions
-- Explore `@pppp606/ink-chart` for richer chart types (line graphs, stacked bars)
+- Fix ink-table/ink-task-list/ink-divider compatibility or contribute PRs upstream
+- Add search/filter to doc-reader file browser
+- Git dashboard: add diff --stat for staged/unstaged changes
+- Project dashboard: add `npm outdated` or `bun outdated` check for deps

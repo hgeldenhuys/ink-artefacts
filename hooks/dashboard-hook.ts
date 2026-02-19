@@ -357,7 +357,7 @@ async function main() {
         existing.timestamp = now;
         if (diff) {
           existing.diffs.unshift(diff);
-          if (existing.diffs.length > 20) existing.diffs = existing.diffs.slice(0, 20);
+          if (existing.diffs.length > 10) existing.diffs = existing.diffs.slice(0, 10);
         }
         state.recentFiles.unshift(existing);
       } else {
@@ -368,7 +368,17 @@ async function main() {
           diffs: diff ? [diff] : [],
         });
       }
-      if (state.recentFiles.length > 20) state.recentFiles = state.recentFiles.slice(0, 20);
+      // Cap files at 15 and diffs at 10 per file to prevent unbounded growth
+      if (state.recentFiles.length > 15) state.recentFiles = state.recentFiles.slice(0, 15);
+      // Also cap total diffs across all files
+      let totalDiffs = 0;
+      for (const f of state.recentFiles) {
+        totalDiffs += f.diffs.length;
+        if (totalDiffs > 100) {
+          f.diffs = f.diffs.slice(0, Math.max(0, f.diffs.length - (totalDiffs - 100)));
+          totalDiffs = 100;
+        }
+      }
     }
   }
 
@@ -382,8 +392,17 @@ async function main() {
   saveState(state);
   writeTasksArtifact(sessionId, tasks);
   writeFilesArtifact(sessionId, state);
+  writeContextArtifact(sessionId, state, tasks, input);
 
   process.exit(0);
 }
 
-main().catch(() => process.exit(0));
+main().catch((err) => {
+  // Write error to log file for debugging
+  try {
+    const errLog = join(HOME, '.claude', 'dashboard-hook-errors.log');
+    const msg = `[${new Date().toISOString()}] ${err?.message || String(err)}\n`;
+    writeFileSync(errLog, msg, { flag: 'a' });
+  } catch {}
+  process.exit(0);
+});

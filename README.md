@@ -99,6 +99,15 @@ node --import tsx examples/swarm-explorer/index.tsx [path-to-.swarm-dir]
 
 # Real-time system monitor
 node --import tsx examples/system-monitor/index.tsx
+
+# Doc reader (markdown rendering + syntax highlighting)
+node --import tsx examples/doc-reader/index.tsx [directory]
+
+# Git repository dashboard
+node --import tsx examples/git-dashboard/index.tsx [repo-path]
+
+# Project overview dashboard
+node --import tsx examples/project-dashboard/index.tsx [project-path]
 ```
 
 Or use the npm scripts:
@@ -111,6 +120,9 @@ bun run explore:yaml
 bun run explore:clock
 bun run explore:swarm
 bun run explore:sysmon
+bun run explore:docs
+bun run explore:git
+bun run explore:project
 ```
 
 ### Canvas Mode
@@ -149,6 +161,15 @@ Interactive browser for [recursive-ai](https://github.com/hgeldenhuys/recursive-
 
 ### System Monitor
 Real-time system dashboard showing CPU usage with sparkline history, memory with progress bars, disk usage, and top processes sorted by CPU. Auto-refreshes every 1.5 seconds. Uses Unicode block characters for bars and braille-style sparklines. Color-coded thresholds: green (<40%), cyan (<70%), yellow (<90%), red (>90%).
+
+### Doc Reader
+Browse and read documentation with rich rendering. Markdown files are rendered with full terminal styling (headers, bold, code blocks, lists) via `marked` + `marked-terminal`. Source code files get syntax highlighting via `ink-syntax-highlight` with language auto-detection. Supports scrolling with vim keys, line number toggle, and filtered file lists (only docs and source files shown). Pass a directory path as argument.
+
+### Git Dashboard
+Interactive repository overview with a giant gradient repo name header (`ink-big-text` + `ink-gradient`), loading spinner (`ink-spinner`), and tabbed sections for commits, branches, changes, and stats. Drill into commit details with `git show --stat`, browse branches with ahead/behind indicators, view staged/unstaged changes, and see contributor bar charts. All data from real `git` commands. Pass a repo path as argument.
+
+### Project Dashboard
+Beautiful Node.js project overview combining multiple Ink ecosystem libraries. Giant gradient project name, health checks (README, tests, CI, TypeScript, linter, CLAUDE.md), file type distribution with Unicode bar charts, dependency browser, script viewer with syntax-highlighted commands, directory size breakdown, and TODO/FIXME counter. Scans the actual project directory recursively. Pass a project path as argument.
 
 ### Artifact Viewer (Canvas)
 Watches `~/.claude/artifacts/` for JSON descriptor files. Supports json-tree, disk-usage, table, key-value, file-list, diff-list, and log renderers. Each artifact gets its own tab with independent navigation.
@@ -222,6 +243,9 @@ ink-panels/
 │   ├── clock/                    # Digital clock & countdown timer
 │   ├── swarm-explorer/           # recursive-ai SWARM project browser
 │   ├── system-monitor/           # Real-time CPU/mem/disk/process dashboard
+│   ├── doc-reader/               # Markdown + syntax-highlighted code viewer
+│   ├── git-dashboard/            # Git repo overview with gradient header
+│   ├── project-dashboard/        # Node.js project health & stats
 │   └── artifact-viewer/          # Canvas mode viewer
 │       └── renderers/
 │           ├── json-tree.tsx      # JSON tree viewer

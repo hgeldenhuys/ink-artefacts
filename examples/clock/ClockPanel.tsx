@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, Text, useInput } from 'ink';
+import { exec } from 'child_process';
 import { useInputLock } from '../../src/hooks/useInputLock.js';
 import type { PanelProps } from '../../src/types.js';
 
@@ -115,6 +116,7 @@ type TimerField = 'h' | 'm' | 's';
 
 export interface ClockData {
   title?: string;
+  onTimerEnd?: string; // bash command to run when timer hits zero
 }
 
 // ─── Component ────────────────────────────────────────────
@@ -168,6 +170,10 @@ export function ClockPanel(props: PanelProps<ClockData>) {
     if (mode === 'timer-run' && remaining === 0 && totalSet > 0) {
       if (intervalRef.current) clearInterval(intervalRef.current);
       setMode('timer-done');
+      // Run exec command if provided
+      if (props.data.onTimerEnd) {
+        exec(props.data.onTimerEnd);
+      }
       // Start flashing
       setFlashCount(0);
       setFlashOn(true);
@@ -329,7 +335,7 @@ export function ClockPanel(props: PanelProps<ClockData>) {
     });
   } else if (mode === 'timer-set') {
     displayTime = `${pad2(timerH)}:${pad2(timerM)}:${pad2(timerS)}`;
-    label = 'Set Timer';
+    label = props.data.onTimerEnd ? `Set Timer  ⚡ ${props.data.onTimerEnd}` : 'Set Timer';
   } else {
     // timer-run, timer-paused, timer-done
     const rh = Math.floor(remaining / 3600);

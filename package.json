@@ -28,6 +28,8 @@
     "claude:tasks": "node --import tsx hooks/inject-dashboard.ts tasks",
     "claude:files": "node --import tsx hooks/inject-dashboard.ts files",
     "claude:context": "node --import tsx hooks/inject-dashboard.ts context",
+    "explore:hooks": "NODE_ENV=production node --import tsx examples/hook-editor/index.tsx",
+    "slides": "NODE_ENV=production node --import tsx examples/slide-deck/index.tsx",
     "explore:swarm": "NODE_ENV=production node --import tsx examples/swarm-explorer/index.tsx",
     "explore:sysmon": "NODE_ENV=production node --import tsx examples/system-monitor/index.tsx",
     "explore:docs": "NODE_ENV=production node --import tsx examples/doc-reader/index.tsx",

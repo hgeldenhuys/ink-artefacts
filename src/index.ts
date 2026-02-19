@@ -6,6 +6,8 @@ export { Breadcrumb } from './components/Breadcrumb.js';
 export { TablePanel } from './components/TablePanel.js';
 export { DetailPanel } from './components/DetailPanel.js';
 export { ListPanel } from './components/ListPanel.js';
+export { SlideViewer } from './components/SlideViewer.js';
+export type { SlideViewerProps } from './components/SlideViewer.js';
 
 // Hooks
 export { usePanelNavigation } from './hooks/usePanelNavigation.js';
@@ -26,5 +28,6 @@ export type {
   TableColumn,
   DetailField,
   FormField,
+  Slide,
 } from './types.js';
 export type { CanvasEvent } from './hooks/useCanvasEvents.js';

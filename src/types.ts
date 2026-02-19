@@ -118,6 +118,16 @@ export interface DetailField {
 }
 
 /**
+ * A single slide in a presentation.
+ */
+export interface Slide {
+  /** Title shown in breadcrumb and footer */
+  title: string;
+  /** Markdown body rendered via marked + marked-terminal */
+  body: string;
+}
+
+/**
  * Configuration for a form field.
  */
 export interface FormField {

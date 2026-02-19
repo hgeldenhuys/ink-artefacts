@@ -896,9 +896,10 @@ function wrapText(text: string, width: number): string[] {
 interface SwarmExplorerProps {
   swarmDir: string;
   appName?: string;
+  onExit?: () => void;
 }
 
-export function SwarmExplorer({ swarmDir, appName = 'swarm-explorer' }: SwarmExplorerProps) {
+export function SwarmExplorer({ swarmDir, appName = 'swarm-explorer', onExit }: SwarmExplorerProps) {
   const rootPanel: PanelConfig = {
     id: 'dashboard',
     title: 'SWARM',
@@ -907,5 +908,5 @@ export function SwarmExplorer({ swarmDir, appName = 'swarm-explorer' }: SwarmExp
     state: { view: 'dashboard' },
   };
 
-  return <PanelStack initialPanel={rootPanel} appName={appName} />;
+  return <PanelStack initialPanel={rootPanel} appName={appName} onExit={onExit} />;
 }

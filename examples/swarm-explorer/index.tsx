@@ -17,8 +17,15 @@ const swarmDir = process.argv[2]
   ? resolve(process.argv[2])
   : join(import.meta.dirname, 'sample-swarm');
 
-const { waitUntilExit } = render(
-  <SwarmExplorer swarmDir={swarmDir} appName="swarm-explorer" />
+const { unmount, waitUntilExit } = render(
+  <SwarmExplorer
+    swarmDir={swarmDir}
+    appName="swarm-explorer"
+    onExit={() => {
+      unmount();
+      process.exit(0);
+    }}
+  />
 );
 
 waitUntilExit().then(() => process.exit(0));

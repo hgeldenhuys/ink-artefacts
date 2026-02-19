@@ -67,6 +67,10 @@ export function PanelStack({
     if (input === 'q' && stack.length === 1 && onExit) {
       onExit();
     }
+    // 'Q' (shift+q) exits from any depth
+    if (input === 'Q' && onExit) {
+      onExit();
+    }
   });
 
   const Component = activePanel.component;

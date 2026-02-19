@@ -30,6 +30,8 @@ const examples: Example[] = [
   { name: 'SWARM Explorer', description: 'Browse .swarm stories, tasks, knowledge, retros', dir: 'swarm-explorer' },
   { name: 'Scrum Board', description: 'Kanban-style scrum board with task management', dir: 'scrum-board' },
   { name: 'DB Browser', description: 'Browse SQLite databases interactively', dir: 'db-browser' },
+  { name: 'Hook Editor', description: 'Browse and edit Claude Code hooks across all scopes', dir: 'hook-editor' },
+  { name: 'Slide Deck', description: 'Terminal presentation: The Anatomy of an AI Coding Agent', dir: 'slide-deck' },
   { name: 'YAML Editor', description: 'Browse and edit YAML files with vim-style keys', dir: 'yaml-editor' },
   { name: 'Clock', description: 'Animated terminal clock with timer', dir: 'clock' },
   { name: 'Neon Clock', description: 'Glowing gradient clock with cycling neon themes', dir: 'neon-clock' },

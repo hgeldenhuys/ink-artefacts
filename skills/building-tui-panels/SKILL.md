@@ -23,6 +23,7 @@ Create interactive, panel-based terminal applications using ink-panels — a sta
 | State file | `~/.claude/tui-state.json` |
 | Runtime | Node.js (NOT Bun — Ink has stdin issues under Bun) |
 | Package manager | Bun (for install/scripts only) |
+| **TMUX** | **Required** — Claude launches panels via `tmux split-window` |
 | Examples | `examples/file-browser/`, `examples/scrum-board/`, `examples/db-browser/`, `examples/yaml-editor/` |
 
 ## Prerequisites
@@ -305,22 +306,24 @@ state: {
 
 When building a new ink-panels app from scratch:
 
-- [ ] 1. **Create project directory** and initialize with `bun init`
-- [ ] 2. **Install dependencies**: `bun add ink react && bun add -d @types/node @types/react tsx typescript`
-- [ ] 3. **Copy tsconfig.json** from Prerequisites section above
-- [ ] 4. **Plan the panel hierarchy** — draw out the navigation tree
-- [ ] 5. **Define data types** — TypeScript interfaces for your domain
-- [ ] 6. **Write factory functions** — one `makeSomethingPanel()` per node in the tree
-- [ ] 7. **Wire up the root panel** and `PanelStack`
-- [ ] 8. **Add state annotations** — `state: { type: '...', id: ... }` on each panel
-- [ ] 9. **Add a run script** to package.json: `"start": "node --import tsx index.tsx"`
-- [ ] 10. **Test in TMUX**: `tmux split-window -h -p 60 "node --import tsx index.tsx"`
-- [ ] 11. **Verify state file**: `cat ~/.claude/tui-state.json` while navigating
+- [ ] 1. **Check TMUX** — Run `which tmux` and confirm the user is inside a TMUX session (`echo $TMUX`). If not installed or not in a session, stop and tell the user: "ink-panels requires TMUX. Install with `brew install tmux` and start a session with `tmux`."
+- [ ] 2. **Create project directory** and initialize with `bun init`
+- [ ] 3. **Install dependencies**: `bun add ink react && bun add -d @types/node @types/react tsx typescript`
+- [ ] 4. **Copy tsconfig.json** from Prerequisites section above
+- [ ] 5. **Plan the panel hierarchy** — draw out the navigation tree
+- [ ] 6. **Define data types** — TypeScript interfaces for your domain
+- [ ] 7. **Write factory functions** — one `makeSomethingPanel()` per node in the tree
+- [ ] 8. **Wire up the root panel** and `PanelStack`
+- [ ] 9. **Add state annotations** — `state: { type: '...', id: ... }` on each panel
+- [ ] 10. **Add a run script** to package.json: `"start": "node --import tsx index.tsx"`
+- [ ] 11. **Launch in TMUX**: `tmux split-window -h -p 60 "node --import tsx index.tsx"`
+- [ ] 12. **Verify state file**: `cat ~/.claude/tui-state.json` while navigating
 
 ## Gotchas
 
 | Issue | Cause | Fix |
 |-------|-------|-----|
+| `tmux split-window` fails | Not inside a TMUX session | Start one with `tmux` first |
 | App exits immediately | Running with Bun instead of Node | Use `node --import tsx` not `bun` |
 | Escape exits instead of going back | React 19 setState timing bug | Library already fixed — uses `useRef` to mirror stack synchronously |
 | Rendering glitches in TMUX | Wrong TERM variable | Set `TERM=tmux-256color` in tmux.conf |

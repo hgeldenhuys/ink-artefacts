@@ -52,7 +52,7 @@ Write a JSON file to `~/.claude/artifacts/<unique-name>.json` with this schema:
 
 ### Launching the Canvas
 
-If the viewer is not already running, find the plugin root (same repo as this skill) and launch:
+**Requires TMUX.** Claude Code needs a second terminal pane to display the viewer. If the viewer is not already running, find the plugin root and launch:
 
 ```bash
 tmux split-window -h -p 60 "node --import tsx <plugin-root>/examples/artifact-viewer/index.tsx"
@@ -180,6 +180,7 @@ There are two distinct operations. **Never combine them in one step.**
 
 ### A) First-time launch (viewer is NOT running)
 
+- [ ] 0. **Check TMUX** — Run `which tmux && echo $TMUX`. If TMUX is not installed or the user is not in a TMUX session, stop and tell them: "The canvas viewer requires TMUX to launch alongside Claude Code. Install with `brew install tmux` and start a session with `tmux`."
 - [ ] 1. **Gather data** — Read files, run commands, query APIs to get the raw data.
 - [ ] 2. **Choose artifact type** — Match data shape to the best renderer.
 - [ ] 3. **Write artifact file(s)** — Use the Write tool to create `~/.claude/artifacts/<name>.json`.
@@ -209,6 +210,7 @@ If no output, the viewer is not running — use workflow A.
 
 | Issue | Cause | Fix |
 |-------|-------|-----|
+| `tmux split-window` fails | Not inside a TMUX session | User must start one with `tmux` first |
 | New TMUX pane flashes when adding artifact | Launched viewer when it was already running | Check with `pgrep` first |
 | Artifact doesn't appear | Viewer started before file was written | Write files first, then launch viewer |
 | Tab shows old data | Wrote to same filename as existing artifact | Use unique filenames |

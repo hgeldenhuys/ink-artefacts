@@ -29,7 +29,20 @@ Built on [Ink](https://github.com/vadimdemedes/ink) (React for terminals) with R
 - **Input lock** — modal editing without Escape conflicts (`useInputLock`)
 - **Claude state file** — writes `~/.claude/tui-state.json` on every interaction
 - **Canvas mode** — drop JSON files to `~/.claude/artifacts/` for live artifact tabs
-- **TMUX-aware** — respects pane dimensions, keyboard-friendly
+- **Requires TMUX** — Claude Code launches panels in a split pane; TMUX is how it gets a second terminal
+
+## Prerequisites
+
+- **TMUX** — Required. Claude Code runs in one pane and launches the TUI in an adjacent pane via `tmux split-window`. Without TMUX there's no way for Claude to programmatically open a side-by-side terminal. Install with `brew install tmux` (macOS) or `apt install tmux` (Linux).
+- **Node.js** — Required for running apps (Ink has stdin issues under Bun).
+- **Bun** — Recommended for package management (`bun install`, `bun add`).
+
+Recommended TMUX settings (in `~/.tmux.conf`):
+
+```
+set -sg escape-time 10          # prevent input lag
+set -g default-terminal "tmux-256color"  # proper color support
+```
 
 ## Installation
 
@@ -213,7 +226,7 @@ const inputLock = useInputLock();
 - **Always run with Node.js**: `node --import tsx app.tsx`
 - **Never run with Bun**: Ink's `useInput` has stdin issues under Bun
 - **Use Bun for package management**: `bun install`, `bun add`
-- **TMUX-friendly**: Launch in a split pane with `tmux split-window -h -p 60 "node --import tsx app.tsx"`
+- **TMUX is required**: Claude Code launches panels via `tmux split-window -h -p 60 "node --import tsx app.tsx"` — without TMUX, you'd need to manually open a second terminal
 
 ## License
 

@@ -5,6 +5,7 @@ import { join, basename } from 'path';
 import { Breadcrumb } from '../../src/components/Breadcrumb.js';
 import { usePanelNavigation } from '../../src/hooks/usePanelNavigation.js';
 import { useStateFile } from '../../src/hooks/useStateFile.js';
+import { logCanvasEvent } from '../../src/hooks/useCanvasEvents.js';
 import { homedir } from 'os';
 import { JsonTreePanel } from './renderers/json-tree.js';
 import { DiskUsagePanel } from './renderers/disk-usage.js';
@@ -72,6 +73,8 @@ function artifactToPanel(descriptor: ArtifactDescriptor): PanelConfig {
         component: ListPanel as any,
         data: {
           title: descriptor.title,
+          canvasName: 'artifact-viewer',
+          panelId: descriptor.id,
           items: (descriptor.data as any[]).map((item: any, i: number) => ({
             id: String(i),
             label: item.name ?? item.label ?? String(item),
@@ -97,6 +100,8 @@ function artifactToPanel(descriptor: ArtifactDescriptor): PanelConfig {
         component: ListPanel as any,
         data: {
           title: descriptor.title,
+          canvasName: 'artifact-viewer',
+          panelId: descriptor.id,
           items: fileEntries.map((entry, i) => ({
             id: String(i),
             label: entry.shortName,
@@ -185,6 +190,22 @@ function ArtifactPanel({
     }
   }, [descriptor]);
 
+  // Wrapped push/pop that log canvas events before delegating
+  const wrappedPush = useCallback((panel: PanelConfig) => {
+    logCanvasEvent('artifact-viewer', 'push', panel.title, {
+      panelId: panel.id,
+      fromPanel: activePanel.title,
+    });
+    push(panel);
+  }, [push, activePanel]);
+
+  const wrappedPop = useCallback(() => {
+    logCanvasEvent('artifact-viewer', 'pop', activePanel.title, {
+      panelId: activePanel.id,
+    });
+    return pop();
+  }, [pop, activePanel]);
+
   const resolvedPath = join(homedir(), '.claude', 'tui-state.json');
   useStateFile(appName, stack, resolvedPath, isActive, 300);
 
@@ -192,7 +213,7 @@ function ArtifactPanel({
   useInput((input, key) => {
     if (!isActive) return;
     if (key.escape) {
-      pop();
+      wrappedPop();
     }
   }, { isActive });
 
@@ -206,10 +227,11 @@ function ArtifactPanel({
       <Box flexDirection="column" flexGrow={1} width={width} height={panelHeight}>
         <Component
           data={activePanel.data}
-          push={push}
-          pop={pop}
+          push={wrappedPush}
+          pop={wrappedPop}
           replace={replace}
           updateState={updateState}
+          state={activePanel.state}
           width={width}
           height={panelHeight}
         />
@@ -322,14 +344,24 @@ export function ArtifactWorkspace({ artifactsDir, appName = 'artifact-viewer', o
 
   // Global keys: left/right to switch tabs, q to quit
   useInput((input, key) => {
-    if (key.leftArrow && key.shift) {
-      setActiveTab(prev => (prev - 1 + artifacts.length) % artifacts.length);
-    } else if (key.rightArrow && key.shift) {
-      setActiveTab(prev => (prev + 1) % artifacts.length);
-    } else if (input === '[') {
-      setActiveTab(prev => (prev - 1 + artifacts.length) % artifacts.length);
-    } else if (input === ']') {
-      setActiveTab(prev => (prev + 1) % artifacts.length);
+    if (artifacts.length === 0) return;
+
+    if ((key.leftArrow && key.shift) || input === '[') {
+      const newTab = (activeTab - 1 + artifacts.length) % artifacts.length;
+      setActiveTab(newTab);
+      logCanvasEvent('artifact-viewer', 'tab_switch', artifacts[newTab]?.title ?? 'unknown', {
+        fromIndex: activeTab,
+        toIndex: newTab,
+        toTitle: artifacts[newTab]?.title,
+      });
+    } else if ((key.rightArrow && key.shift) || input === ']') {
+      const newTab = (activeTab + 1) % artifacts.length;
+      setActiveTab(newTab);
+      logCanvasEvent('artifact-viewer', 'tab_switch', artifacts[newTab]?.title ?? 'unknown', {
+        fromIndex: activeTab,
+        toIndex: newTab,
+        toTitle: artifacts[newTab]?.title,
+      });
     } else if (input === 'q' && key.ctrl) {
       if (onExit) onExit();
     }

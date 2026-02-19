@@ -83,6 +83,7 @@ export function PanelStack({
             pop={pop}
             replace={replace}
             updateState={updateState}
+            state={activePanel.state}
             width={panelWidth}
             height={panelHeight}
           />

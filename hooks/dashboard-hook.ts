@@ -388,11 +388,18 @@ async function main() {
     tasks = extractTasksFromTranscript(input.transcript_path);
   }
 
-  // ─── Save state and write session-scoped artifacts ───
+  // ─── Save state (data collection only — no artifact writing) ───
+  // Artifacts are written on-demand via `bun run canvas:dashboard`
   saveState(state);
-  writeTasksArtifact(sessionId, tasks);
-  writeFilesArtifact(sessionId, state);
-  writeContextArtifact(sessionId, state, tasks, input);
+
+  // Stash session metadata so the dashboard injector can use it
+  const metaPath = join(HOME, '.claude', 'dashboard-meta.json');
+  writeFileSync(metaPath, JSON.stringify({
+    sessionId,
+    tasks,
+    transcriptPath: input.transcript_path || '',
+    toolName: input.tool_name || '',
+  }, null, 2));
 
   process.exit(0);
 }

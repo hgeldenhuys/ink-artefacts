@@ -30,6 +30,8 @@ export interface PanelProps<TData = unknown> {
   replace: (panel: PanelConfig) => void;
   /** Update the serialized state for Claude integration */
   updateState: (state: Record<string, unknown>) => void;
+  /** Persisted panel state from previous navigation */
+  state?: Record<string, unknown>;
   /** Available width in columns */
   width: number;
   /** Available height in rows (minus breadcrumb) */

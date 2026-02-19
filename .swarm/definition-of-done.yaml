@@ -1,0 +1,37 @@
+# Definition of Done — SWARM
+# A story is done when all required items are met.
+
+items:
+  - id: "dod-1"
+    description: "All acceptance criteria are passing"
+    required: true
+    automated: true
+    command: "grep -c 'status: passing' .swarm/backlog/{STORY_ID}.md"
+
+  - id: "dod-2"
+    description: "Code compiles without errors"
+    required: true
+    automated: true
+    command: "bun run typecheck"
+
+  - id: "dod-3"
+    description: "All tests pass"
+    required: true
+    automated: true
+    command: "bun test"
+
+  - id: "dod-4"
+    description: "Linting passes with no errors"
+    required: true
+    automated: true
+    command: "bunx biome check ."
+
+  - id: "dod-5"
+    description: "Retrospective has been generated"
+    required: true
+    automated: false
+
+  - id: "dod-6"
+    description: "Knowledge has been extracted"
+    required: true
+    automated: false

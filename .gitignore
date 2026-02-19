@@ -6,3 +6,8 @@ dist/
 !src/**
 !examples/**
 .DS_Store
+# SWARM SDLC
+.swarm/pending-questions/
+
+# Agent memory (project-specific, not shared)
+.claude/agent-memory/

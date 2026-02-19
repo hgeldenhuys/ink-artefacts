@@ -1,0 +1,11 @@
+# Ways of Working — SWARM
+# Team process and automation settings.
+
+testing: "test-first"
+review: "required"
+documentation: "standard"
+effort_model: "tshirt"
+max_parallel_agents: 3
+auto_verify: true
+knowledge_extraction: true
+knowledge_auto_hoist: false

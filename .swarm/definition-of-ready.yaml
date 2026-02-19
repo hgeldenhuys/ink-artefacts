@@ -1,0 +1,23 @@
+# Definition of Ready — SWARM
+# A story is ready for planning when all required items are met.
+
+items:
+  - id: "dor-1"
+    description: "Problem statement is clearly defined"
+    required: true
+    automated: false
+
+  - id: "dor-2"
+    description: "Acceptance criteria are testable"
+    required: true
+    automated: false
+
+  - id: "dor-3"
+    description: "Complexity has been estimated"
+    required: true
+    automated: false
+
+  - id: "dor-4"
+    description: "Technical approach has been sketched"
+    required: false
+    automated: false

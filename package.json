@@ -21,6 +21,7 @@
     "explore:clock": "NODE_ENV=production node --import tsx examples/clock/index.tsx",
     "canvas": "NODE_ENV=production node --import tsx examples/artifact-viewer/index.tsx",
     "canvas:inject": "NODE_ENV=production node --import tsx examples/artifact-viewer/inject-demo.ts",
+    "canvas:tutorial": "node --import tsx examples/artifact-viewer/inject-tutorial.ts",
     "explore:swarm": "NODE_ENV=production node --import tsx examples/swarm-explorer/index.tsx",
     "explore:sysmon": "NODE_ENV=production node --import tsx examples/system-monitor/index.tsx",
     "explore:docs": "NODE_ENV=production node --import tsx examples/doc-reader/index.tsx",
